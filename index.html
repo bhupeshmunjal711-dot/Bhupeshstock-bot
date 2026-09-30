@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Telegram Stock Alerter</title>
+<style>
+body{font-family:Arial;max-width:850px;margin:30px auto;padding:15px;background:#f5f7fb}
+.card{background:white;padding:22px;border-radius:16px;box-shadow:0 3px 18px #0001;margin-bottom:18px}
+input{width:100%;box-sizing:border-box;padding:13px;margin:7px 0 14px;border:1px solid #ccd3df;border-radius:9px}
+button{padding:12px 18px;border:0;border-radius:9px;cursor:pointer}
+.add{background:#1683ff;color:white}.del{background:#eee}
+.status{font-weight:bold}
+small{word-break:break-all}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>🛒 Telegram Stock Alerter</h1>
+<p>Checks every <b>5 minutes</b> and sends Telegram only when stock changes to available.</p>
+<form id="f">
+<label>Product URL</label>
+<input name="url" required placeholder="Paste Amazon / Flipkart / Croma / Reliance Digital / JioMart URL">
+<label>Telegram Chat ID</label>
+<input name="chat_id" value="{{ chat_id }}" required>
+<button class="add">➕ Add Product</button>
+</form>
+<p id="msg"></p>
+</div>
+<div class="card">
+<h2>Active Alerts</h2>
+{% for a in alerts %}
+<div style="border-top:1px solid #eee;padding:14px 0">
+<b>#{{a.id}}</b> — <span class="status">{{a.last_status}}</span><br>
+<small>{{a.url}}</small><br><br>
+<button class="del" onclick="removeAlert({{a.id}})">Stop Alert</button>
+</div>
+{% else %}
+<p>No products added yet.</p>
+{% endfor %}
+</div>
+<script>
+document.getElementById('f').onsubmit=async(e)=>{
+ e.preventDefault();
+ const r=await fetch('/add',{method:'POST',body:new FormData(e.target)});
+ const j=await r.json();
+ document.getElementById('msg').textContent=j.ok?'✅ Product added.':'❌ '+j.error;
+ if(j.ok)setTimeout(()=>location.reload(),500);
+};
+async function removeAlert(id){
+ await fetch('/delete/'+id,{method:'POST'}); location.reload();
+}
+</script>
+</body></html>
